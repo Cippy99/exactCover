@@ -27,7 +27,8 @@ def generate_random_set_of_sets(n_sets, total_elements):
     for c in cardinalities:
         result.add(generate_set(c, total_elements))
 
-    return result, Counter(cardinalities)
+    cards = [len(x) for x in result]
+    return result, Counter(cards)
 
 
 def generate_normal_set_of_sets(n_sets, total_elements, around):
@@ -40,7 +41,8 @@ def generate_normal_set_of_sets(n_sets, total_elements, around):
     for c in cardinalities:
         result.add(generate_set(c, total_elements))
 
-    return result, Counter(cardinalities)
+    cards = [len(x) for x in result]
+    return result, Counter(cards)
 
 
 def generate_file(file, sets, total_elements, cardinalities):
