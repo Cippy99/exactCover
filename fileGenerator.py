@@ -4,20 +4,10 @@ import argparse
 from scipy.stats import truncnorm
 from collections import Counter
 
-parser = argparse.ArgumentParser(description='Generate input files for exact cover problem')
-parser.add_argument('-s', '--nsets', type=int, metavar='', required=True, help='Number of sets of the problem')
-parser.add_argument('-t', '--total', type=int, metavar='', required=True,
-                    help='Number of total different elements in all sets')
-parser.add_argument('-a', '--around', type=int, metavar='', help='If present, cardinality of sets is drawn from normal '
-                                                                 'distribution with this value as average')
-parser.add_argument('-f', '--file', metavar='', help='Name of the output file (without extension)')
-args = parser.parse_args()
-
 
 def generate_set(cardinality, total_elements):
     result = set()
-    for _ in range(cardinality):
-        result.add(random.randint(1, total_elements))
+    result = set(random.sample(range(1, total_elements + 1), cardinality))
     return frozenset(result)
 
 
@@ -41,7 +31,9 @@ def generate_normal_set_of_sets(n_sets, total_elements, around):
     for c in cardinalities:
         result.add(generate_set(c, total_elements))
 
+    # print(sorted(cardinalities))
     cards = [len(x) for x in result]
+    # print(sorted(cards))
     return result, Counter(cards)
 
 
@@ -78,6 +70,16 @@ def generate_file(file, sets, total_elements, cardinalities):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Generate input files for exact cover problem')
+    parser.add_argument('-s', '--nsets', type=int, metavar='', required=True, help='Number of sets of the problem')
+    parser.add_argument('-t', '--total', type=int, metavar='', required=True,
+                        help='Number of total different elements in all sets')
+    parser.add_argument('-a', '--around', type=int, metavar='',
+                        help='If present, cardinality of sets is drawn from normal '
+                             'distribution with this value as average')
+    parser.add_argument('-f', '--file', metavar='', help='Name of the output file (without extension)')
+    args = parser.parse_args()
+
     set_of_sets, stats = generate_random_set_of_sets(args.nsets, args.total) if args.around is None \
         else generate_normal_set_of_sets(args.nsets, args.total, args.around)
 

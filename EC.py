@@ -1,3 +1,4 @@
+import argparse
 import time
 from os.path import splitext
 
@@ -31,15 +32,21 @@ class ExactCover:
     @staticmethod
     def write_set(file, to_write_set):
         file.write(str(to_write_set) + '\n')
+        print(f"Exact Cover found: {str(to_write_set)}")
 
-    def write_stats(self, file, exec_time, user_stop = False):
+    def write_stats(self, file, exec_time, user_stop=False):
         if user_stop:
             file.write(';;;Process terminated by user\n')
             file.write(f';;;Analyzed {len(self.a) - 1} sets\n')
+            file.write(f';;;Execution time:{exec_time:.2f}')
         else:
             file.write(';;;Execution complete\n')
             file.write(f';;;Analyzed all {len(self.a) - 1} sets\n')
             file.write(f';;;Execution time:{exec_time:.2f}')
+
+    @staticmethod
+    def print_report(exec_time, n_sets):
+        print(f"{time.strftime('%M:%S', time.gmtime(exec_time))} - Analyzed {n_sets} sets")
 
     def store_card(self, card, index):
         pass
@@ -65,10 +72,11 @@ class ExactCover:
                 if len(intertemp) != 0:
                     self.explore(itemp, utemp, intertemp, outf)
 
-    def ec(self, output_file):
+    def ec(self, output_file, quiet=False):
 
         start_time = time.time()
         i = 0
+        each = 25  # Frequency of reports
 
         name, ext = splitext(self.input_file)
         input_file_wiht_id = f"{name}_commented{ext}"
@@ -118,12 +126,15 @@ class ExactCover:
                                 if len(inter) != 0:
                                     self.explore(i_set, u, inter, outf)
 
+                    if (i % each == 0) and not quiet:
+                        self.print_report(time.time() - start_time, i)
+
                 end_time = time.time()
-                self.write_stats(outf, end_time-start_time)
+                self.write_stats(outf, end_time - start_time)
 
             except KeyboardInterrupt:
                 end_time = time.time()
-                self.write_stats(outf, end_time-start_time, user_stop=True)
+                self.write_stats(outf, end_time - start_time, user_stop=True)
 
 
 class ExactCoverPlus(ExactCover):
@@ -145,5 +156,16 @@ class ExactCoverPlus(ExactCover):
 
 
 if __name__ == '__main__':
-    ec = ExactCoverPlus('prova_easy.txt')
-    ec.ec('result_e.txt')
+    parser = argparse.ArgumentParser(description='Exact Cover problem solver')
+    parser.add_argument('-i', '--input', required=True, metavar='', help='Input file containing matrix A')
+    parser.add_argument('-o', '--output', metavar='', help='Output file (without extension)')
+    parser.add_argument('-q', '--quiet', action='store_true', help='If present, no reports will be printed')
+    parser.add_argument('-p', '--plus', action='store_true', help='Plus version of the algorithm')
+
+    args = parser.parse_args()
+
+    name_f, ext_f = splitext(args.input)
+    out_file = f"{name_f}_out{ext_f}" if args.output is None else f"{args.output}.txt"
+
+    ec = ExactCoverPlus(args.input) if args.plus is True else ExactCover(args.input)
+    ec.ec(out_file, args.quiet)
