@@ -37,19 +37,20 @@ def generate_normal_set_of_sets(n_sets, total_elements, around):
     return result, Counter(cards)
 
 
+def write_cardinalities(open_file, cards, title=';;;Cardinality of sets:\n'):
+    m = max(cards.values())
+    max_length = 25
+    open_file.write(title)
+    for k, v in sorted(cards.items()):
+        open_file.write(';;;')
+        for count in range(max_length):
+            length = int(max_length * (v / m))
+            open_file.write('*' if count <= length else ' ')
+
+        open_file.write(f'\t{v:3} | c={k}\n')
+
+
 def generate_file(file, sets, total_elements, cardinalities):
-    def write_cardinalities(open_file, cards):
-        m = max(cards.values())
-        max_length = 25
-        open_file.write(';;;Cardinality of sets:\n')
-        for k, v in sorted(cards.items()):
-            open_file.write(';;;')
-            for count in range(max_length):
-                length = int(max_length * (v/m))
-                open_file.write('*' if count <= length else ' ')
-
-            open_file.write(f'\t{v:3} | c={k}\n')
-
     if os.path.exists(file):
         os.remove(file)
 

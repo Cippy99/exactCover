@@ -1,6 +1,9 @@
 import argparse
+import os
 import time
+from collections import Counter
 from os.path import splitext
+from fileGenerator import write_cardinalities
 
 
 class ExactCover:
@@ -8,6 +11,7 @@ class ExactCover:
         self.a = {}
         self.b = {}
         self.input_file = input_file
+        self.covers = set()
 
         with open(input_file, 'r') as inf:
             for line in inf:
@@ -16,6 +20,7 @@ class ExactCover:
                     continue
                 else:
                     n = len(line.strip().replace('-', ''))
+                    break
 
         self.m = {i for i in range(1, n + 1)}
 
@@ -29,20 +34,27 @@ class ExactCover:
                 result.add(i)
         return result
 
-    @staticmethod
-    def write_set(file, to_write_set):
+    def write_set(self, file, to_write_set):
+        self.covers.add(frozenset(to_write_set))
         file.write(str(to_write_set) + '\n')
         print(f"Exact Cover found: {str(to_write_set)}")
+
+    @staticmethod
+    def write_input_cards(file):
+        pass
 
     def write_stats(self, file, exec_time, user_stop=False):
         if user_stop:
             file.write(';;;Process terminated by user\n')
             file.write(f';;;Analyzed {len(self.a) - 1} sets\n')
-            file.write(f';;;Execution time:{exec_time:.2f}')
         else:
             file.write(';;;Execution complete\n')
             file.write(f';;;Analyzed all {len(self.a) - 1} sets\n')
-            file.write(f';;;Execution time:{exec_time:.2f}')
+
+        file.write(f';;;Found {len(self.covers)} cover{"" if len(self.covers) == 1 else "s"}\n')
+        write_cardinalities(file, Counter([len(x) for x in self.covers]), ';;;Cardinality of covers:\n')
+        self.write_input_cards(file)
+        file.write(f';;;Execution time:{exec_time:.2f}\n')
 
     @staticmethod
     def print_report(exec_time, n_sets):
@@ -79,7 +91,12 @@ class ExactCover:
         each = 25  # Frequency of reports
 
         name, ext = splitext(self.input_file)
+
         input_file_wiht_id = f"{name}_commented{ext}"
+        if os.path.exists(input_file_wiht_id):
+            os.remove(input_file_wiht_id)
+        if os.path.exists(output_file):
+            os.remove(output_file)
 
         with open(self.input_file, 'r') as inf, open(output_file, 'a') as outf, open(input_file_wiht_id, 'a') as infid:
             try:
@@ -126,6 +143,7 @@ class ExactCover:
                                 if len(inter) != 0:
                                     self.explore(i_set, u, inter, outf)
 
+                    # Write report every 'each' sets analyzed
                     if (i % each == 0) and not quiet:
                         self.print_report(time.time() - start_time, i)
 
@@ -154,6 +172,9 @@ class ExactCoverPlus(ExactCover):
     def check_cover(self, to_check):
         return to_check == len(self.m)
 
+    def write_input_cards(self, file):
+        write_cardinalities(file, Counter(list(self.card.values())), ';;;Cardinality of input sets:\n')
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Exact Cover problem solver')
@@ -165,7 +186,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     name_f, ext_f = splitext(args.input)
-    out_file = f"{name_f}_out{ext_f}" if args.output is None else f"{args.output}.txt"
+    out_file = f"{name_f}_out{'_p' if args.plus else ''}{ext_f}" if args.output is None else f"{args.output}.txt"
 
     ec = ExactCoverPlus(args.input) if args.plus is True else ExactCover(args.input)
     ec.ec(out_file, args.quiet)
