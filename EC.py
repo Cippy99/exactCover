@@ -12,6 +12,7 @@ class ExactCover:
         self.b = {}
         self.input_file = input_file
         self.covers = set()
+        self.nodes = 0
 
         with open(input_file, 'r') as inf:
             for line in inf:
@@ -49,12 +50,14 @@ class ExactCover:
             file.write(f';;;Analyzed {len(self.a) - 1} sets\n')
         else:
             file.write(';;;Execution complete\n')
-            file.write(f';;;Analyzed all {len(self.a) - 1} sets\n')
+            file.write(f';;;Analyzed all {len(self.a)} sets\n')
 
+        file.write(f';;;Visited {self.nodes} out of {2**len(self.a) - 1:.2E} nodes '
+                   f'({(self.nodes*100/2**len(self.a)):.3f}%)\n')
         file.write(f';;;Found {len(self.covers)} cover{"" if len(self.covers) == 1 else "s"}\n')
         write_cardinalities(file, Counter([len(x) for x in self.covers]), ';;;Cardinality of covers:\n')
         self.write_input_cards(file)
-        file.write(f';;;Execution time:{exec_time:.2f}\n')
+        file.write(f';;;Execution time:{time.strftime("%M:%S", time.gmtime(exec_time))} - ({exec_time:.2f}s)\n')
 
     @staticmethod
     def print_report(exec_time, n_sets):
@@ -76,6 +79,8 @@ class ExactCover:
         for k in sorted(intersect):
             itemp = ind.union({k})
             utemp = self.generate_u_explore(u_set, self.a[k])
+
+            self.nodes += 1
 
             if self.check_cover(utemp):
                 self.write_set(outf, itemp)
@@ -121,16 +126,20 @@ class ExactCover:
                     self.a[i] = self.to_set(line)
 
                     # Start of Algorithm
+                    self.nodes += 1
+
                     if len(self.a[i]) == 0:
                         break
 
                     if self.a[i] == self.m:
                         self.write_set(outf, {i})
+                        print(i)
                         break
 
                     self.store_card(len(self.a[i]), i)
 
                     for j in range(1, i):
+                        self.nodes += 1
                         if len(self.a[i].intersection(self.a[j])) == 0:
                             i_set = {i, j}  # i_set is I of pseudocode
                             # u contains a[i] union a[j] (or |A[i]| + |A[j]| for EC+)

@@ -38,6 +38,8 @@ def generate_normal_set_of_sets(n_sets, total_elements, around):
 
 
 def write_cardinalities(open_file, cards, title=';;;Cardinality of sets:\n'):
+    if len(cards) == 0:
+        return
     m = max(cards.values())
     max_length = 25
     open_file.write(title)
