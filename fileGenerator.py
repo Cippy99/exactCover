@@ -81,10 +81,17 @@ if __name__ == '__main__':
                         help='If present, cardinality of sets is drawn from normal '
                              'distribution with this value as average')
     parser.add_argument('-f', '--file', metavar='', help='Name of the output file (without extension)')
+    parser.add_argument('-nf', '--nfiles', type= int, metavar='', help='Number of files to generate')
     args = parser.parse_args()
 
     set_of_sets, stats = generate_random_set_of_sets(args.nsets, args.total) if args.around is None \
         else generate_normal_set_of_sets(args.nsets, args.total, args.around)
 
-    file_name = 'out.txt' if args.file is None else args.file + '.txt'
-    generate_file(file_name, set_of_sets, args.total, stats)
+    if args.nfiles is None:
+        file_name = 'out.txt' if args.file is None else args.file + '.txt'
+        generate_file(file_name, set_of_sets, args.total, stats)
+
+    else:
+        for i in range(1, args.nfiles + 1):
+            file_name = f'out_{i}.txt' if args.file is None else f'{args.file}_{i}' + '.txt'
+            generate_file(file_name, set_of_sets, args.total, stats)
