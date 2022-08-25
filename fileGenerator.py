@@ -13,9 +13,19 @@ def generate_set(cardinality, total_elements):
 
 def generate_random_set_of_sets(n_sets, total_elements):
     result = set()
-    cardinalities = [random.randint(1, total_elements - 1) for _ in range(n_sets)]
-    for c in cardinalities:
-        result.add(generate_set(c, total_elements))
+    MAX_ITER = 10 * n_sets
+    # cardinalities = [random.randint(1, total_elements - 1) for _ in range(n_sets)]
+    # for c in cardinalities:
+    #     result.add(generate_set(c, total_elements))
+    i = 0
+    n_iter = 0
+    while i < n_sets and n_iter < MAX_ITER:
+        c = random.randint(1, total_elements - 1)
+        generated_set = generate_set(c, total_elements)
+        if generated_set not in result:
+            result.add(generated_set)
+            i += 1
+        MAX_ITER += 1
 
     cards = [len(x) for x in result]
     return result, Counter(cards)
@@ -81,17 +91,18 @@ if __name__ == '__main__':
                         help='If present, cardinality of sets is drawn from normal '
                              'distribution with this value as average')
     parser.add_argument('-f', '--file', metavar='', help='Name of the output file (without extension)')
-    parser.add_argument('-nf', '--nfiles', type= int, metavar='', help='Number of files to generate')
+    parser.add_argument('-nf', '--nfiles', type=int, metavar='', help='Number of files to generate')
     args = parser.parse_args()
 
-    set_of_sets, stats = generate_random_set_of_sets(args.nsets, args.total) if args.around is None \
-        else generate_normal_set_of_sets(args.nsets, args.total, args.around)
-
     if args.nfiles is None:
+        set_of_sets, stats = generate_random_set_of_sets(args.nsets, args.total) if args.around is None \
+            else generate_normal_set_of_sets(args.nsets, args.total, args.around)
         file_name = 'out.txt' if args.file is None else args.file + '.txt'
         generate_file(file_name, set_of_sets, args.total, stats)
 
     else:
         for i in range(1, args.nfiles + 1):
+            set_of_sets, stats = generate_random_set_of_sets(args.nsets, args.total) if args.around is None \
+                else generate_normal_set_of_sets(args.nsets, args.total, args.around)
             file_name = f'out_{i}.txt' if args.file is None else f'{args.file}_{i}' + '.txt'
             generate_file(file_name, set_of_sets, args.total, stats)

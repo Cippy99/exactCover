@@ -35,10 +35,11 @@ class ExactCover:
                 result.add(i)
         return result
 
-    def write_set(self, file, to_write_set):
+    def write_set(self, file, to_write_set, quiet):
         self.covers.add(frozenset(to_write_set))
         file.write(str(to_write_set) + '\n')
-        print(f"Exact Cover found: {str(to_write_set)}")
+        if not quiet:
+            print(f"Exact Cover found: {str(to_write_set)}")
 
     @staticmethod
     def write_input_cards(file):
@@ -75,7 +76,7 @@ class ExactCover:
     def check_cover(self, to_check):
         return to_check == self.m
 
-    def explore(self, ind, u_set, intersect, outf):
+    def explore(self, ind, u_set, intersect, outf, quiet):
         for k in sorted(intersect):
             itemp = ind.union({k})
             utemp = self.generate_u_explore(u_set, self.a[k])
@@ -83,11 +84,11 @@ class ExactCover:
             self.nodes += 1
 
             if self.check_cover(utemp):
-                self.write_set(outf, itemp)
+                self.write_set(outf, itemp, quiet)
             else:
                 intertemp = intersect.intersection(self.b[k])
                 if len(intertemp) != 0:
-                    self.explore(itemp, utemp, intertemp, outf)
+                    self.explore(itemp, utemp, intertemp, outf, quiet)
 
     def ec(self, output_file, quiet=False):
 
@@ -132,8 +133,7 @@ class ExactCover:
                         break
 
                     if self.a[i] == self.m:
-                        self.write_set(outf, {i})
-                        print(i)
+                        self.write_set(outf, {i}, quiet)
                         break
 
                     self.store_card(len(self.a[i]), i)
@@ -145,12 +145,12 @@ class ExactCover:
                             # u contains a[i] union a[j] (or |A[i]| + |A[j]| for EC+)
                             u = self.generate_u(self.a[i], self.a[j])
                             if self.check_cover(u):
-                                self.write_set(outf, i_set)
+                                self.write_set(outf, i_set, quiet)
                             else:
                                 self.b[i].add(j)
                                 inter = self.b[i].intersection(self.b[j])
                                 if len(inter) != 0:
-                                    self.explore(i_set, u, inter, outf)
+                                    self.explore(i_set, u, inter, outf, quiet)
 
                     # Write report every 'each' sets analyzed
                     if (i % each == 0) and not quiet:
