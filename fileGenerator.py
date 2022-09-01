@@ -25,7 +25,7 @@ def generate_random_set_of_sets(n_sets, total_elements):
         if generated_set not in result:
             result.add(generated_set)
             i += 1
-        MAX_ITER += 1
+        n_iter += 1
 
     cards = [len(x) for x in result]
     return result, Counter(cards)
@@ -39,11 +39,15 @@ def generate_normal_set_of_sets(n_sets, total_elements, around):
     cardinalities = cardinalities.round().astype(int)
 
     for c in cardinalities:
-        result.add(generate_set(c, total_elements))
+        i = 0
+        while i < (100 * c):
+            generated_set = generate_set(c, total_elements)
+            if generated_set not in result:
+                result.add(generated_set)
+                break
+            i += 1
 
-    # print(sorted(cardinalities))
     cards = [len(x) for x in result]
-    # print(sorted(cards))
     return result, Counter(cards)
 
 
