@@ -136,6 +136,7 @@ class ExactCover:
                         self.write_set(outf, {i}, quiet)
                         break
 
+                    #used in plus version
                     self.store_card(len(self.a[i]), i)
 
                     for j in range(1, i):
